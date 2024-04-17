@@ -1,58 +1,57 @@
 import iziToast from 'izitoast';
+import SimpleLightbox from 'simplelightbox';
 import 'izitoast/dist/css/iziToast.min.css';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
-export function renderMarcup(data) {
-  return data.hits
-    .map(
-      el =>
-        `<div class="gallery-item">
-            <a class="gallery-link" href="${el.largeImageURL}">
-                <img class="gallery-image" src="${el.webformatURL}" alt="${el.tags}" />
+const loader = document.getElementById('loader');
+const gallery = document.getElementById('gallery');
+const lightbox = new SimpleLightbox('.gallery a');
+const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+export function renderGallery(images, isFirstLoad) {
+  if (isFirstLoad) {
+    loader.style.display = 'none';
+  }
+
+  if (images.length === 0) {
+    iziToast.info({
+      title: 'Info',
+      message:
+        'Sorry, there are no images matching your search query. Please try again!',
+    });
+    hideLoadMoreButton();
+    return;
+  }
+
+  images.forEach(image => {
+    const card = document.createElement('div');
+    card.classList.add('card');
+    card.innerHTML = `
+            <a href="${image.largeImageURL}" data-lightbox="gallery">
+                <img src="${image.webformatURL}" alt="${image.tags}">
             </a>
-            <div class="gallery-item-info">
-                <p class="gallery-item-info-par">
-                    <span class="gallery-item-info-span">Likes: <span>${el.likes}</span>
-                    </span>
-                </p>
-                <p class="gallery-item-info-par">
-                    <span class="gallery-item-info-span">Views: <span>${el.views}</span>
-                    </span>
-                </p>
-                <p class="gallery-item-info-par">
-                    <span class="gallery-item-info-span">Comments: <span>${el.comments}</span>
-                    </span>
-                </p>
-                <p class="gallery-item-info-par">
-                    <span class="gallery-item-info-span">Downloads: <span>${el.downloads}</span>
-                    </span>
-                </p>
-            </div>
-        </div>`
-    )
-    .join('');
+            <p>Likes: ${image.likes}</p>
+            <p>Views: ${image.views}</p>
+            <p>Comments: ${image.comments}</p>
+            <p>Downloads: ${image.downloads}</p>
+        `;
+    gallery.appendChild(card);
+  });
+
+  lightbox.refresh();
 }
 
-export function showEndOfListMessage() {
+export function hideLoadMoreButton() {
+  loadMoreBtn.style.display = 'none';
+}
+
+export function showLoadMoreButton() {
+  loadMoreBtn.style.display = 'block';
+}
+
+export function showEndOfCollectionMessage() {
   iziToast.info({
-    timeout: 3000,
-    position: 'topRight',
+    title: 'Info',
     message: "We're sorry, but you've reached the end of search results.",
-  });
-}
-
-export function showEmptyInputMessage() {
-  iziToast.info({
-    timeout: 3000,
-    position: 'topRight',
-    message: "The search query can not be epty!",
-  });
-}
-
-export function noImagesMessage() {
-  iziToast.error({
-    timeout: 3000,
-    position: 'topRight',
-    message:
-      'There are no images matching your search query. Please, enter something else!',
   });
 }
