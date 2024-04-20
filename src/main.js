@@ -34,7 +34,7 @@ async function onSubmit(event) {
   event.preventDefault();
   container.innerHTML = '';
   searchWord = form.elements.searchWord.value.trim();
-  loadMoreBtn.style.display = 'block';
+  loadMoreBtn.style.display = 'none';
 
   if (searchWord === '') {
     showEmptyInputMessage();
@@ -46,23 +46,31 @@ async function onSubmit(event) {
   loader.style.display = 'block';
 
   try {
-    const images = await fetchImages(searchWord, currPage).then(data => {
-      const marcup = renderMarcup(data);
-      if (data.hits.length === 0) {
-        noImagesMessage();
-        loadMoreBtn.style.display = 'none';
-        loader.style.display = 'none';
-        return;
-      }
-      container.insertAdjacentHTML('beforeend', marcup);
-      lightbox.refresh();
+    const data = await fetchImages(searchWord, currPage);
+    const marcup = renderMarcup(data);
+
+    if (data.hits.length === 0) {
+      noImagesMessage();
+      loadMoreBtn.style.display = 'none';
       loader.style.display = 'none';
-    });
+      return;
+    }
+
+    container.insertAdjacentHTML('beforeend', marcup);
+    lightbox.refresh();
+    loader.style.display = 'none';
+
+    if (data.totalHits <= currPage * 15) {
+      showEndOfListMessage();
+    } else {
+      loadMoreBtn.style.display = 'block';
+    }
   } catch (error) {
     console.error('Error:', error);
   }
   form.reset();
 }
+
 
 async function onLoadMore() {
   currPage += 1;
